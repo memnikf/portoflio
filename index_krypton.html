@@ -1,0 +1,3231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memnik — Spatial Engineering & Mixed Reality Lab</title>
+  <meta name="description" content="Memnik is an independent lab synthesizing physical space with advanced human-machine interfaces — bold concepts, engineered with cybernetic precision." />
+  <meta name="theme-color" content="#060606" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS Variables & Palette */
+    :root {
+      --background: #060606;
+      --foreground: #f2f2f2;
+      --ink: #0d0d0d;
+      --muted: #7c7c7c;
+      --subtle: #3a3a3a;
+      --line: #171717;
+      --surface: #121212;
+      --surface-2: #1b1b1b;
+      --accent: #00ff66;
+      --accent-from: #00ffaa;
+      --accent-to: #00b359;
+      --hero-from: #141414;
+      --hero-to: #070707;
+      
+      --radius-pill: 9999px;
+      --radius-card: 2rem;
+      --radius-card-sm: 1.25rem;
+      --radius-control: 0.875rem;
+      --text-watermark: 13rem;
+      --container-shell: 88rem;
+    }
+
+    /* Global Reset / Base */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html {
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      scroll-behavior: auto; /* Handled by Lenis */
+    }
+    body {
+      background: var(--background);
+      color: var(--foreground);
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    button {
+      font: inherit;
+      color: inherit;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    ul {
+      list-style: none;
+    }
+    img {
+      display: block;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    /* Adaptive Grid Media Queries */
+    @media (max-width:1920px){ html{ font-size: 0.833333vw } }
+    @media (max-width:1440px){ html{ font-size: 1.111111vw } }
+    @media (max-width:1024px){ html{ font-size: 1.5625vw } }
+    @media (max-width:640px){  html{ font-size: 4.444444vw } }
+
+    /* Scroll lock class */
+    html.scroll-locked {
+      position: relative;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    /* Shell Container */
+    .shell {
+      max-width: var(--container-shell);
+      margin-inline: auto;
+      padding-inline: 1.25rem;
+    }
+    @media (min-width: 640px) {
+      .shell {
+        padding-inline: 2rem;
+      }
+    }
+
+    /* Common Spring Transition Utilities */
+    .spring-hover-scale {
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (hover: hover) {
+      .spring-hover-scale:hover {
+        transform: scale(1.04);
+      }
+    }
+
+    /* Skip link */
+    .skip-link {
+      position: fixed;
+      left: -999px;
+      top: -999px;
+      z-index: 60;
+    }
+    .skip-link:focus {
+      left: 1rem;
+      top: 1rem;
+      border-radius: var(--radius-control);
+      background: var(--ink);
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      color: #fff;
+    }
+
+    /* Page Loader */
+    .page-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      background: #000;
+      color: #fff;
+      border-radius: 0 0 2rem 2rem;
+      transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+      transform: translateY(0%);
+    }
+    .page-loader.exit {
+      transform: translateY(-100%);
+    }
+    .loader-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      text-align: center;
+      transition: opacity 0.5s cubic-bezier(0.26, 1, 0.48, 1), transform 0.5s cubic-bezier(0.26, 1, 0.48, 1);
+      opacity: 1;
+      transform: translateY(0px);
+    }
+    .page-loader.exit .loader-content {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+    .loader-brand {
+      font-weight: 600;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    @media (min-width: 640px) {
+      .loader-brand {
+        font-size: 1.875rem;
+      }
+    }
+    .loader-logo {
+      color: var(--accent);
+      font-size: 1.875rem;
+    }
+    .loader-tagline {
+      max-width: 24ch;
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.55);
+      font-weight: 400;
+      line-height: 1.4;
+    }
+    .loader-progress-block {
+      width: min(22rem, 72vw);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .loader-track {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.15);
+      width: 100%;
+      position: relative;
+    }
+    .loader-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      transition: width 0.1s ease-out;
+    }
+    .loader-info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.45);
+    }
+    .loader-percentage {
+      font-family: monospace;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Eyebrow Component */
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .eyebrow-dot {
+      width: 0.375rem;
+      height: 0.375rem;
+      border-radius: 9999px;
+    }
+    .eyebrow.tone-dark {
+      color: rgba(255, 255, 255, 0.75);
+    }
+    .eyebrow.tone-dark .eyebrow-dot {
+      background: var(--accent);
+    }
+    .eyebrow.tone-light {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .eyebrow.tone-light .eyebrow-dot {
+      background: var(--accent);
+    }
+
+    /* PillButton Component */
+    .pill-button {
+      display: inline-block;
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (hover: hover) {
+      .pill-button:hover {
+        transform: scale(1.04);
+      }
+    }
+    .pill-button-inner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .pill-button.variant-dark .pill-button-inner {
+      background: #fff;
+      color: #000;
+    }
+    .pill-button.variant-light .pill-button-inner {
+      background: var(--surface);
+      color: var(--foreground);
+      border: 1px solid var(--line);
+    }
+    .pill-button.variant-outline .pill-button-inner {
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--foreground);
+    }
+    .pill-button.has-arrow .pill-button-inner {
+      padding: 0.375rem 0.375rem 0.375rem 1.5rem;
+    }
+    .pill-button.no-arrow .pill-button-inner {
+      padding: 0.875rem 1.75rem;
+    }
+    .pill-button-badge {
+      width: 2.25rem;
+      height: 2.25rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .pill-button.variant-dark .pill-button-badge {
+      background: var(--background);
+      color: var(--accent);
+    }
+    .pill-button.variant-light .pill-button-badge,
+    .pill-button.variant-outline .pill-button-badge {
+      background: #fff;
+      color: #000;
+    }
+    .pill-button-badge svg {
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (hover: hover) {
+      .pill-button:hover .pill-button-badge svg.arrow-right {
+        transform: translate(3px, 0);
+      }
+      .pill-button:hover .pill-button-badge svg.arrow-up-right {
+        transform: translate(2px, -2px);
+      }
+    }
+
+    /* TagChip Component */
+    .tag-chip {
+      display: inline-flex;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--foreground);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 9999px;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+
+    /* AnimatedLink Component */
+    .animated-link {
+      display: inline-flex;
+      align-items: center;
+    }
+    .animated-link span {
+      display: inline-block;
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+      opacity: 0.65;
+    }
+    @media (hover: hover) {
+      .animated-link:hover span {
+        transform: translateX(4px);
+        opacity: 1;
+        color: var(--accent);
+      }
+      .legal-link:hover span {
+        transform: translateX(3px);
+        opacity: 1;
+        color: var(--accent);
+      }
+    }
+    .legal-link span {
+      opacity: 0.7;
+    }
+
+    /* Text Reveal Mechanics */
+    .line-container {
+      overflow: hidden;
+      display: block;
+    }
+    .line-container span {
+      display: block;
+      transform: translateY(100%);
+      opacity: 0;
+      transition: transform 0.9s cubic-bezier(0.215, 0.61, 0.355, 1), opacity 0.9s cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+    body.ready .line-reveal.active .line-container span {
+      transform: translateY(0%);
+      opacity: 1;
+    }
+
+    /* Word Reveal Mechanics */
+    .word-outer {
+      display: inline-block;
+      overflow: hidden;
+      vertical-align: bottom;
+    }
+    .word-inner {
+      display: inline-block;
+      transform: translateY(24px);
+      opacity: 0;
+      transition: transform 0.7s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+    body.ready .word-reveal.active .word-inner {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Static reveal animations */
+    .reveal-item {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    body.ready .reveal-item.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Header overlay */
+    header {
+      position: absolute;
+      inset-inline: 0;
+      top: 0;
+      z-index: 50;
+      opacity: 0;
+      transform: translateY(-14px);
+      transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s;
+    }
+    body.ready header {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding-top: 1.25rem;
+      padding-bottom: 1.25rem;
+    }
+    @media (min-width: 640px) {
+      .header-inner {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+      }
+    }
+    .brand-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (hover: hover) {
+      .brand-btn:hover {
+        transform: scale(1.04);
+      }
+    }
+    .brand-btn svg {
+      color: var(--accent);
+      font-size: 1.25rem;
+    }
+    .nav-list {
+      display: none;
+      gap: 2rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    @media (min-width: 1024px) {
+      .nav-list {
+        display: flex;
+      }
+    }
+    .nav-link {
+      display: inline-block;
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+      opacity: 0.8;
+    }
+    .nav-link:hover {
+      transform: translateY(-2px);
+      opacity: 1;
+      color: var(--accent);
+    }
+    .nav-link[aria-current="page"] {
+      opacity: 1;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .nav-caret {
+      font-size: 0.75rem;
+      opacity: 0.6;
+      margin-left: 0.15rem;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .clock-chip {
+      display: none;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(4px);
+      border-radius: var(--radius-control);
+      padding: 0.5rem 0.75rem;
+      gap: 0.75rem;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.7);
+      align-items: center;
+    }
+    @media (min-width: 768px) {
+      .clock-chip {
+        display: flex;
+      }
+    }
+    .clock-label {
+      color: rgba(255, 255, 255, 0.45);
+    }
+    .clock-time {
+      min-width: 3.5rem;
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+      color: #fff;
+    }
+    .clock-separator {
+      color: rgba(255, 255, 255, 0.3);
+    }
+    .clock-date {
+      font-weight: 500;
+    }
+    .menu-trigger {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(4px);
+      border-radius: var(--radius-control);
+      transition: background-color 0.3s;
+    }
+    .menu-trigger:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--accent);
+    }
+    .menu-trigger-inner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .menu-trigger:hover .menu-trigger-inner {
+      transform: scale(1.05);
+    }
+    .menu-text {
+      display: none;
+    }
+    @media (min-width: 640px) {
+      .menu-text {
+        display: inline;
+      }
+    }
+
+    /* Hero Section */
+    .hero-section {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      border-radius: 0 0 2rem 2rem;
+      background: var(--hero-to);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .liquid-reveal-container {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .liquid-reveal-container img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+    .liquid-reveal-container canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .hero-vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.65), transparent, rgba(0, 0, 0, 0.65));
+    }
+    .hero-watermark {
+      pointer-events: none;
+      position: absolute;
+      inset-inline: 0;
+      bottom: 7rem;
+      z-index: 1;
+      text-align: center;
+      user-select: none;
+      font-weight: 700;
+      line-height: 1;
+      font-size: var(--text-watermark);
+      color: rgba(255, 255, 255, 0.03);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s cubic-bezier(0.12, 1, 0.3, 1) 0.3s, transform 0.8s cubic-bezier(0.12, 1, 0.3, 1) 0.3s;
+    }
+    body.ready .hero-watermark {
+      opacity: 0.4;
+      transform: translateY(0);
+    }
+    .hero-grid {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      padding: 7rem 1.25rem 5rem;
+      flex: 1;
+    }
+    @media (min-width: 640px) {
+      .hero-grid {
+        padding-inline: 2rem;
+      }
+    }
+    @media (min-width: 1024px) {
+      .hero-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 2.5rem;
+        padding: 9rem 2rem 7rem;
+        align-items: center;
+      }
+    }
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1.75rem;
+    }
+    @media (min-width: 1024px) {
+      .hero-left {
+        grid-column: span 7;
+      }
+    }
+    .hero-title {
+      max-width: 18ch;
+      font-size: 2.25rem;
+      font-weight: 600;
+      line-height: 0.98;
+      letter-spacing: -0.02em;
+    }
+    @media (min-width: 640px) {
+      .hero-title {
+        font-size: 3rem;
+      }
+    }
+    @media (min-width: 768px) {
+      .hero-title {
+        font-size: 3.75rem;
+      }
+    }
+    .rating-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .rating-stars {
+      color: var(--accent);
+      font-size: 1rem;
+      display: flex;
+      gap: 0.15rem;
+    }
+    .rating-text {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .hero-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .hero-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2rem;
+    }
+    @media (min-width: 1024px) {
+      .hero-right {
+        grid-column: span 5;
+        align-items: flex-end;
+      }
+    }
+
+    /* Carousel Card Component */
+    .hero-card {
+      width: 100%;
+      max-width: 24rem;
+      border-radius: var(--radius-card-sm);
+      background: rgba(13, 13, 13, 0.75);
+      padding: 0.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+    @media (min-width: 1024px) {
+      .hero-card {
+        max-width: 19rem;
+      }
+    }
+    .carousel-inner {
+      display: flex;
+      gap: 0.5rem;
+      cursor: pointer;
+      border-radius: var(--radius-control);
+    }
+    .carousel-left-tile {
+      aspect-ratio: 1;
+      width: 6rem;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-control);
+      background: #000;
+      font-size: 1.875rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .carousel-left-tile svg {
+      color: var(--accent);
+    }
+    .carousel-right-panel {
+      flex: 1;
+      border-radius: var(--radius-control);
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255,255,255,0.03);
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 0;
+    }
+    .carousel-slot {
+      position: relative;
+      min-height: 3.25rem;
+      overflow: hidden;
+    }
+    .carousel-slide {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .carousel-slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .carousel-slide.prev {
+      transform: translateY(-14px);
+    }
+    .carousel-slide.next {
+      transform: translateY(14px);
+    }
+    .carousel-caption {
+      font-size: 0.65rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      margin-bottom: 0.15rem;
+    }
+    .carousel-title {
+      max-width: 12rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      line-height: 1.35;
+      color: var(--foreground);
+    }
+    .carousel-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.25rem;
+    }
+    .carousel-dots {
+      display: flex;
+      gap: 0.25rem;
+    }
+    .carousel-dot {
+      height: 0.25rem;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.2);
+      width: 0.375rem;
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .carousel-dot.active {
+      width: 1rem;
+      background: var(--accent);
+    }
+    .carousel-controls {
+      display: flex;
+      gap: 0.25rem;
+    }
+    .carousel-ctrl-btn {
+      width: 1.75rem;
+      height: 1.75rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      background: rgba(255,255,255,0.03);
+      color: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--line);
+      font-size: 0.75rem;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .carousel-ctrl-btn:hover {
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .carousel-ctrl-btn svg {
+      font-size: 0.875rem;
+    }
+    .carousel-ctrl-btn.prev-btn svg {
+      transform: rotate(180deg);
+    }
+
+    /* Partners Grid */
+    .partners-block {
+      width: 100%;
+      max-width: 24rem;
+    }
+    @media (min-width: 1024px) {
+      .partners-block {
+        max-width: 19rem;
+      }
+    }
+    .partners-label {
+      margin-bottom: 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.45);
+      text-align: left;
+    }
+    @media (min-width: 1024px) {
+      .partners-label {
+        text-align: right;
+      }
+    }
+    .partners-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      column-gap: 1rem;
+      row-gap: 0.75rem;
+    }
+    .partner-item {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.7);
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+      opacity: 0.7;
+    }
+    .partner-item:hover {
+      transform: translateY(-2px);
+      opacity: 1;
+      color: var(--accent);
+    }
+    .partner-item svg {
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.4);
+      flex-shrink: 0;
+    }
+
+    /* Hero bottom status bar */
+    .hero-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      border-top: 1px solid var(--line);
+      padding: 1.25rem 0;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: auto;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.9s;
+    }
+    body.ready .hero-status-bar {
+      opacity: 1;
+    }
+    .hero-status-center {
+      display: none;
+    }
+    @media (min-width: 640px) {
+      .hero-status-center {
+        display: block;
+      }
+    }
+    .hero-status-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* About Section */
+    .about-section {
+      background: var(--background);
+    }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      align-items: center;
+      gap: 3rem;
+      padding-top: 5rem;
+      padding-bottom: 5rem;
+    }
+    @media (min-width: 1024px) {
+      .about-grid {
+        grid-template-columns: 1fr 1fr;
+        padding-top: 7rem;
+        padding-bottom: 7rem;
+      }
+    }
+    .about-left {
+      position: relative;
+      min-height: 14rem;
+    }
+    @media (min-width: 1024px) {
+      .about-left {
+        min-height: 20rem;
+      }
+    }
+    .about-globe-bg {
+      position: absolute;
+      left: -1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12rem;
+      color: rgba(255, 255, 255, 0.02);
+      pointer-events: none;
+    }
+    @media (min-width: 640px) {
+      .about-globe-bg {
+        font-size: 16rem;
+      }
+    }
+    @media (min-width: 1024px) {
+      .about-globe-bg {
+        left: -1.5rem;
+        font-size: 20rem;
+      }
+    }
+    .about-globe-bg svg {
+      width: 1em;
+      height: 1em;
+    }
+    .about-info-block {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.75);
+    }
+    .about-info-block svg {
+      font-size: 1.5rem;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    .about-info-text {
+      max-width: 14rem;
+      line-height: 1.4;
+    }
+    .about-right {
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+    .about-statement {
+      font-size: 1.5rem;
+      font-weight: 500;
+      line-height: 1.35;
+      letter-spacing: -0.01em;
+    }
+    @media (min-width: 640px) {
+      .about-statement {
+        font-size: 1.875rem;
+      }
+    }
+    .about-statement .muted-words {
+      color: var(--muted);
+    }
+    .about-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1.5rem;
+      border-top: 1px solid var(--line);
+      padding-top: 1.5rem;
+    }
+    .about-socials-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .about-socials-label {
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.45);
+    }
+    .about-socials-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .social-chip {
+      width: 2.25rem;
+      height: 2.25rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .social-chip.variant-accent {
+      background: var(--accent);
+      color: #000;
+    }
+    .social-chip.variant-surface {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: rgba(255, 255, 255, 0.7);
+    }
+    @media (hover: hover) {
+      .social-chip:hover {
+        transform: scale(1.18);
+        border-color: var(--accent);
+      }
+    }
+
+    /* CreateBand Section */
+    .create-band-section {
+      background: var(--background);
+    }
+    .create-band-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding-top: 2.5rem;
+      padding-bottom: 2.5rem;
+    }
+    @media (min-width: 640px) {
+      .create-band-list {
+        flex-direction: row;
+        gap: 1rem;
+      }
+    }
+    .create-band-item {
+      flex: 1;
+    }
+    .create-tile {
+      display: grid;
+      place-items: center;
+      height: 6rem;
+      border-radius: 9999px;
+      font-size: 1.875rem;
+      font-weight: 500;
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (min-width: 640px) {
+      .create-tile {
+        height: 10rem;
+        font-size: 2.25rem;
+      }
+    }
+    @media (hover: hover) {
+      .create-tile:hover {
+        transform: scale(1.03);
+      }
+    }
+    .create-tile.variant-light {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: var(--foreground);
+    }
+    .create-tile.variant-accent {
+      background: linear-gradient(to bottom right, var(--accent-from), var(--accent-to));
+      color: #000;
+    }
+    .create-tile.variant-dark {
+      background: var(--ink);
+      border: 1px solid var(--line);
+      color: #fff;
+    }
+    .create-tile.variant-dark svg {
+      font-size: 2.25rem;
+    }
+    @media (min-width: 640px) {
+      .create-tile.variant-dark svg {
+        font-size: 3rem;
+      }
+    }
+    .create-tile.variant-ghost {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px dashed var(--line);
+      color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Portfolio Section */
+    .portfolio-section {
+      background: var(--background);
+    }
+    .portfolio-inner {
+      padding-top: 2.5rem;
+      padding-bottom: 5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    @media (min-width: 1024px) {
+      .portfolio-inner {
+        padding-bottom: 7rem;
+      }
+    }
+    .portfolio-title {
+      font-size: 2.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-top: 1.25rem;
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+    @media (min-width: 640px) {
+      .portfolio-title {
+        font-size: 3rem;
+      }
+    }
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      width: 100%;
+    }
+    @media (min-width: 768px) {
+      .portfolio-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .portfolio-card-link {
+      display: block;
+      width: 100%;
+    }
+    .portfolio-card {
+      position: relative;
+      min-height: 22rem;
+      overflow: hidden;
+      border-radius: var(--radius-card);
+      background: var(--ink);
+      padding: 1.5rem;
+      color: #fff;
+      border: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.35s cubic-bezier(0.25, 1, 0.35, 1);
+    }
+    @media (min-width: 640px) {
+      .portfolio-card {
+        min-height: 26rem;
+        padding: 2rem;
+      }
+    }
+    @media (hover: hover) {
+      .portfolio-card-link:hover .portfolio-card {
+        transform: translateY(-8px) scale(1.012);
+        border-color: var(--accent);
+      }
+    }
+    .portfolio-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: rgba(255, 255, 255, 0.45);
+      z-index: 10;
+    }
+    .portfolio-badge {
+      width: 2.75rem;
+      height: 2.75rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.03);
+      color: #fff;
+      border: 1px solid var(--line);
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s;
+    }
+    @media (hover: hover) {
+      .portfolio-card-link:hover .portfolio-badge {
+        transform: rotate(45deg) scale(1.08);
+        background: var(--accent);
+        color: #000;
+        border-color: var(--accent);
+      }
+    }
+    .portfolio-watermark {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .portfolio-watermark-inner {
+      font-size: 4.5rem;
+      color: rgba(255, 255, 255, 0.01);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.15rem;
+    }
+    .portfolio-watermark-reg {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.01);
+      margin-top: 0.75rem;
+    }
+    .portfolio-bottom {
+      z-index: 10;
+    }
+    .portfolio-name {
+      font-size: 1.5rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    @media (min-width: 640px) {
+      .portfolio-name {
+        font-size: 1.875rem;
+      }
+    }
+    .portfolio-desc {
+      margin-top: 0.5rem;
+      max-width: 28rem;
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.55);
+      line-height: 1.4;
+    }
+    .portfolio-tags {
+      margin-top: 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    /* Services Section */
+    .services-section {
+      background: var(--background);
+    }
+    .services-inner {
+      padding-top: 5rem;
+      padding-bottom: 5rem;
+    }
+    @media (min-width: 1024px) {
+      .services-inner {
+        padding-top: 7rem;
+        padding-bottom: 7rem;
+      }
+    }
+    .services-title {
+      margin-top: 1.25rem;
+      margin-bottom: 3rem;
+      max-width: 16ch;
+      font-size: 2.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    @media (min-width: 640px) {
+      .services-title {
+        margin-bottom: 3.5rem;
+        font-size: 3rem;
+      }
+    }
+    .services-list {
+      display: flex;
+      flex-direction: column;
+    }
+    .services-item {
+      border-top: 1px solid var(--line);
+    }
+    .services-item:last-child {
+      border-bottom: 1px solid var(--line);
+    }
+    .service-row-link {
+      display: block;
+      width: 100%;
+    }
+    .service-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-radius: 1.25rem;
+      padding: 1.5rem 1rem;
+      background: rgba(255, 255, 255, 0);
+      transition: background-color 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), padding 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (min-width: 640px) {
+      .service-row {
+        gap: 1.5rem;
+        padding: 2rem 1.5rem;
+      }
+    }
+    @media (hover: hover) {
+      .service-row-link:hover .service-row {
+        background: rgba(255, 255, 255, 0.02);
+        padding-left: 2rem;
+        padding-right: 1.25rem;
+      }
+    }
+    .service-index {
+      width: 1.75rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.3);
+      flex-shrink: 0;
+    }
+    @media (min-width: 640px) {
+      .service-index {
+        width: 2.5rem;
+      }
+    }
+    .service-name {
+      flex: 1;
+      font-size: 1.5rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: var(--foreground);
+    }
+    @media (min-width: 640px) {
+      .service-name {
+        font-size: 1.875rem;
+      }
+    }
+    @media (min-width: 768px) {
+      .service-name {
+        font-size: 2.25rem;
+      }
+    }
+    .service-desc {
+      display: none;
+      max-width: 20rem;
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.55);
+      line-height: 1.4;
+      margin-right: 2rem;
+    }
+    @media (min-width: 1024px) {
+      .service-desc {
+        display: block;
+      }
+    }
+    .service-badge {
+      width: 2.5rem;
+      height: 2.5rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      background: var(--ink);
+      color: #fff;
+      border: 1px solid var(--line);
+      flex-shrink: 0;
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s;
+    }
+    @media (min-width: 640px) {
+      .service-badge {
+        width: 3rem;
+        height: 3rem;
+      }
+    }
+    @media (hover: hover) {
+      .service-row-link:hover .service-badge {
+        transform: translateX(5px);
+        background: var(--accent);
+        color: #000;
+      }
+    }
+
+    /* Stats Section */
+    .stats-section {
+      background: var(--background);
+    }
+    .stats-inner {
+      padding-bottom: 5rem;
+    }
+    @media (min-width: 1024px) {
+      .stats-inner {
+        padding-bottom: 7rem;
+      }
+    }
+    .stats-panel {
+      border-radius: var(--radius-card);
+      background: var(--ink);
+      padding: 3rem 1.5rem;
+      border: 1px solid var(--line);
+      color: #fff;
+    }
+    @media (min-width: 640px) {
+      .stats-panel {
+        padding: 4rem 2rem;
+      }
+    }
+    @media (min-width: 768px) {
+      .stats-panel {
+        padding-left: 4rem;
+        padding-right: 4rem;
+      }
+    }
+    .stats-title {
+      margin-top: 1rem;
+      max-width: 20ch;
+      font-size: 1.875rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+    }
+    @media (min-width: 768px) {
+      .stats-title {
+        font-size: 2.25rem;
+      }
+    }
+    .stats-grid {
+      margin-top: 3.5rem;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: 2rem;
+      row-gap: 3rem;
+    }
+    @media (min-width: 1024px) {
+      .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    .stats-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+    @media (min-width: 640px) {
+      .stat-number {
+        font-size: 3.75rem;
+      }
+    }
+    @media (min-width: 768px) {
+      .stat-number {
+        font-size: 4.5rem;
+      }
+    }
+    .stat-label {
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.55);
+      line-height: 1.4;
+    }
+
+    /* Footer Section */
+    footer {
+      position: relative;
+      overflow: hidden;
+      border-radius: 2rem 2rem 0 0;
+      background: var(--ink);
+      border-top: 1px solid var(--line);
+      color: #fff;
+    }
+    .footer-inner {
+      position: relative;
+      z-index: 10;
+      padding: 5rem 1.25rem 2.5rem;
+    }
+    @media (min-width: 640px) {
+      .footer-inner {
+        padding-inline: 2rem;
+      }
+    }
+    @media (min-width: 1024px) {
+      .footer-inner {
+        padding-top: 6rem;
+      }
+    }
+    .footer-cta-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 4rem;
+    }
+    @media (min-width: 1024px) {
+      .footer-cta-row {
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: space-between;
+      }
+    }
+    .footer-cta-title {
+      max-width: 16ch;
+      font-size: 2.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    @media (min-width: 640px) {
+      .footer-cta-title {
+        font-size: 3rem;
+      }
+    }
+    @media (min-width: 768px) {
+      .footer-cta-title {
+        font-size: 3.75rem;
+      }
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 3rem;
+      padding-top: 4rem;
+      padding-bottom: 4rem;
+    }
+    @media (min-width: 768px) {
+      .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (min-width: 1024px) {
+      .footer-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    .footer-brand-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .footer-brand-name {
+      font-size: 1.125rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .footer-brand-name svg {
+      color: var(--accent);
+    }
+    .footer-brand-tagline {
+      max-width: 20rem;
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.55);
+      line-height: 1.4;
+    }
+    .footer-links-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .footer-col-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: rgba(255, 255, 255, 0.4);
+      font-weight: 600;
+    }
+    .footer-links-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+    }
+    .footer-links-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .footer-col-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: rgba(255, 255, 255, 0.4);
+      font-weight: 600;
+    }
+    .footer-links-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+    }
+    .footer-legal-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 2rem;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.45);
+    }
+    @media (min-width: 640px) {
+      .footer-legal-bar {
+        flex-direction: row;
+      }
+    }
+    .footer-legal-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+    .footer-watermark {
+      position: absolute;
+      inset-inline: 0;
+      bottom: -1.5rem;
+      z-index: 0;
+      text-align: center;
+      pointer-events: none;
+      user-select: none;
+      font-weight: 700;
+      line-height: 1;
+      font-size: var(--text-watermark);
+      color: rgba(255, 255, 255, 0.01);
+    }
+
+    /* Fullscreen NavMenu Overlay */
+    .nav-menu-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 115;
+      display: flex;
+      flex-direction: column;
+      background: var(--background);
+      color: #fff;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s cubic-bezier(0.3, 1, 0.4, 1);
+    }
+    .nav-menu-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .nav-menu-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+    @media (min-width: 640px) {
+      .nav-menu-top {
+        padding: 1.5rem 0;
+      }
+    }
+    .nav-menu-brand {
+      font-size: 1.125rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .nav-menu-brand svg {
+      color: var(--accent);
+    }
+    .nav-menu-close {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      border-radius: var(--radius-control);
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.7);
+      transition: border-color 0.3s, color 0.3s;
+    }
+    .nav-menu-close:hover {
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .nav-menu-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .nav-menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .nav-menu-item-btn {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+      text-align: left;
+      font-size: 2.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      width: 100%;
+      transform: translateY(1rem);
+      opacity: 0;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (min-width: 640px) {
+      .nav-menu-item-btn {
+        font-size: 3.75rem;
+      }
+    }
+    .nav-menu-overlay.open .nav-menu-item-btn {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .nav-menu-index {
+      font-size: 1rem;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.3);
+      margin-top: 0.5rem;
+      transition: color 0.3s;
+    }
+    .nav-menu-label {
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.3s;
+    }
+    .nav-menu-item-btn:hover .nav-menu-index {
+      color: var(--accent);
+    }
+    .nav-menu-item-btn:hover .nav-menu-label {
+      color: #fff;
+    }
+    .nav-menu-bottom {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1.5rem 0;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: rgba(255, 255, 255, 0.45);
+    }
+    @media (min-width: 640px) {
+      .nav-menu-bottom {
+        flex-direction: row;
+        justify-content: space-between;
+      }
+    }
+    .nav-menu-cta-btn {
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.3s;
+    }
+    .nav-menu-cta-btn:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    /* Request Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 110;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s cubic-bezier(0.26, 1, 0.48, 1);
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    @media (min-width: 640px) {
+      .modal-backdrop {
+        align-items: center;
+      }
+    }
+    .modal-panel {
+      position: relative;
+      width: 100%;
+      max-width: 32rem;
+      overflow: hidden;
+      border-radius: var(--radius-card);
+      background: var(--ink);
+      padding: 1.5rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      border: 1px solid var(--line);
+      transform: translateY(28px);
+      transition: transform 0.35s cubic-bezier(0.26, 1, 0.48, 1);
+    }
+    .modal-backdrop.open .modal-panel {
+      transform: translateY(0);
+    }
+    .modal-backdrop.exit-anim .modal-panel {
+      transform: translateY(18px);
+    }
+    @media (min-width: 640px) {
+      .modal-panel {
+        padding: 2rem;
+      }
+    }
+    .modal-close {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      width: 2.25rem;
+      height: 2.25rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      background: var(--surface);
+      color: rgba(255, 255, 255, 0.6);
+      border: 1px solid var(--line);
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .modal-close:hover {
+      background: var(--surface-2);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .modal-header {
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+    }
+    .modal-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .modal-dot {
+      width: 0.375rem;
+      height: 0.375rem;
+      border-radius: 9999px;
+      background: var(--accent);
+    }
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--foreground);
+    }
+    @media (min-width: 640px) {
+      .modal-title {
+        font-size: 1.875rem;
+      }
+    }
+    .modal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .form-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      color: rgba(255, 255, 255, 0.5);
+    }
+    .form-control {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: var(--radius-control);
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      outline: none;
+      font-family: inherit;
+      color: var(--foreground);
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+    .form-control::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+    .form-control:focus {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    textarea.form-control {
+      resize: none;
+    }
+    .modal-footer-row {
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .modal-note {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.45);
+    }
+    
+    /* Success State */
+    .modal-success {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding-top: 2rem;
+      padding-bottom: 2rem;
+      gap: 1rem;
+    }
+    .modal-success-icon {
+      width: 3.5rem;
+      height: 3.5rem;
+      display: grid;
+      place-items: center;
+      border-radius: 9999px;
+      background: #000;
+      color: var(--accent);
+      font-size: 1.5rem;
+    }
+    .modal-success-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--foreground);
+    }
+    .modal-success-desc {
+      max-width: 32ch;
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.4;
+    }
+    .modal-success-btn {
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Skip to Content Link -->
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <!-- Page Loader -->
+  <div class="page-loader" id="page-loader">
+    <div class="loader-content">
+      <div class="loader-brand">
+        <svg class="loader-logo" viewBox="0 0 48 48" width="1em" height="1em" fill="currentColor">
+          <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z" />
+        </svg>
+        <span>Memnik</span>
+      </div>
+      <p class="loader-tagline">Synthesizing physical space with advanced human-machine interfaces.</p>
+    </div>
+    <div class="loader-progress-block">
+      <div class="loader-track">
+        <div class="loader-fill" id="loader-fill"></div>
+      </div>
+      <div class="loader-info-row">
+        <span>Loading</span>
+        <span class="loader-percentage" id="loader-percentage">000</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Overlay -->
+  <header>
+    <div class="shell header-inner">
+      <button class="brand-btn" onclick="scrollToSection('home')" aria-label="Memnik logo, scroll to top">
+        <svg viewBox="0 0 48 48" width="1em" height="1em" fill="currentColor">
+          <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z" />
+        </svg>
+        <span>Memnik</span>
+      </button>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-list">
+          <li><button class="nav-link" aria-current="page" onclick="scrollToSection('home')">Home</button></li>
+          <li><button class="nav-link" onclick="scrollToSection('works')">Lab</button></li>
+          <li>
+            <button class="nav-link" onclick="scrollToSection('services')">
+              Services<span class="nav-caret">▾</span>
+            </button>
+          </li>
+          <li><button class="nav-link" onclick="scrollToSection('about')">Studio</button></li>
+          <li><button class="nav-link" onclick="scrollToSection('footer')">Research</button></li>
+          <li><button class="nav-link" onclick="openRequestModal()">Contact</button></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <div class="clock-chip">
+          <span class="clock-label">Local time</span>
+          <span class="clock-time live-time">9:41am</span>
+          <span class="clock-separator">•</span>
+          <span class="clock-date live-date">12 March, 2025</span>
+        </div>
+        <button class="menu-trigger" onclick="openNavMenu()" aria-label="Open navigation menu">
+          <span class="menu-trigger-inner">
+            <svg viewBox="0 0 24 24" width="1.25em" height="1.25em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <span class="menu-text">Menu</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main id="main">
+
+    <!-- Hero Section -->
+    <section class="hero-section" id="home">
+      <!-- LiquidReveal Background -->
+      <div class="liquid-reveal-container" id="liquid-reveal-container">
+        <!-- Base LCP Image (Abstract Wave backdrop) -->
+        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop" alt="" fetchpriority="high" />
+        <canvas id="liquid-reveal-canvas" aria-hidden="true"></canvas>
+      </div>
+      
+      <div class="hero-vignette"></div>
+      
+      <div class="hero-watermark">MEMNIK</div>
+
+      <div class="shell hero-grid">
+        <div class="hero-left">
+          <div class="eyebrow tone-dark reveal-item" data-delay="200" style="transition-delay: 200ms">
+            <div class="eyebrow-dot"></div>
+            <span>Spatial Computing Lab</span>
+          </div>
+          
+          <h1 class="hero-title line-reveal" data-delay="250" data-stagger="120">
+            <span class="line-container"><span>Synthesize</span></span>
+            <span class="line-container"><span>digital spaces</span></span>
+            <span class="line-container"><span>with code</span></span>
+          </h1>
+
+          <div class="rating-row reveal-item" data-delay="650" style="transition-delay: 650ms">
+            <div class="rating-stars" aria-hidden="true">
+              <!-- 5 Stars -->
+              <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor"><path d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></svg>
+              <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor"><path d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></svg>
+              <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor"><path d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></svg>
+              <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor"><path d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></svg>
+              <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor"><path d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></svg>
+            </div>
+            <span class="rating-text">100+ virtual realities deployed</span>
+          </div>
+
+          <div class="hero-ctas reveal-item" data-delay="750" style="transition-delay: 750ms">
+            <button class="pill-button variant-dark has-arrow" onclick="openRequestModal()" aria-label="Start a project">
+              <span class="pill-button-inner">
+                <span>Let's Talk</span>
+                <span class="pill-button-badge">
+                  <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="arrow-up-right">
+                    <path d="M7 17L17 7M8 7h9v9" />
+                  </svg>
+                </span>
+              </span>
+            </button>
+            <button class="pill-button variant-outline no-arrow" onclick="scrollToSection('works')">
+              <span class="pill-button-inner">View Research</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-right">
+          <!-- Hero Carousel Card -->
+          <div class="hero-card reveal-item" data-delay="400" style="transition-delay: 400ms">
+            <div class="carousel-inner" id="hero-carousel" onclick="advanceCarousel(1)">
+              <div class="carousel-left-tile">
+                <svg viewBox="0 0 48 48" width="1em" height="1em" fill="currentColor">
+                  <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z" />
+                </svg>
+              </div>
+              <div class="carousel-right-panel">
+                <div class="carousel-slot">
+                  <div class="carousel-slide active" data-index="0">
+                    <span class="carousel-caption">Spatial compute</span>
+                    <span class="carousel-title">Engineered for precision.</span>
+                  </div>
+                  <div class="carousel-slide next" data-index="1">
+                    <span class="carousel-caption">Mixed Reality</span>
+                    <span class="carousel-title">Fusing worlds together.</span>
+                  </div>
+                  <div class="carousel-slide" data-index="2">
+                    <span class="carousel-caption">Neural Synthesis</span>
+                    <span class="carousel-title">Designed to react.</span>
+                  </div>
+                </div>
+                <div class="carousel-bottom">
+                  <div class="carousel-dots">
+                    <div class="carousel-dot active"></div>
+                    <div class="carousel-dot"></div>
+                    <div class="carousel-dot"></div>
+                  </div>
+                  <div class="carousel-controls">
+                    <button class="carousel-ctrl-btn prev-btn" onclick="event.stopPropagation(); advanceCarousel(-1);" aria-label="Previous slide">
+                      <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </button>
+                    <button class="carousel-ctrl-btn next-btn" onclick="event.stopPropagation(); advanceCarousel(1);" aria-label="Next slide">
+                      <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Partners Block -->
+          <div class="partners-block reveal-item" data-delay="550" style="transition-delay: 550ms" id="partners">
+            <div class="partners-label">Trusted by</div>
+            <div class="partners-grid">
+              <span class="partner-item">
+                <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Kaido</span>
+              </span>
+              <span class="partner-item">
+                <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Northpeak</span>
+              </span>
+              <span class="partner-item">
+                <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Vellum</span>
+              </span>
+              <span class="partner-item">
+                <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Orbit</span>
+              </span>
+              <span class="partner-item">
+                <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Brightline</span>
+              </span>
+              <span class="partner-item">
+                <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Cobalt</span>
+              </span>
+              <span class="partner-item">
+                <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                <span>Mesa</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-status-bar">
+          <div>Research Lab 2.0</div>
+          <div class="hero-status-center">Remote-first, worldwide</div>
+          <div class="hero-status-right">
+            <span>Scroll to explore</span>
+            <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about">
+      <div class="shell about-grid">
+        <div class="about-left">
+          <div class="about-globe-bg" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+              <circle cx="12" cy="12" r="9.25"/>
+              <path d="M12 2.75c2.6 2.3 4 5.8 4 9.25s-1.4 6.95-4 9.25c-2.6-2.3-4-5.8-4-9.25s1.4-6.95 4-9.25zM2.75 12h18.5"/>
+            </svg>
+          </div>
+          <div class="eyebrow tone-dark">
+            <div class="eyebrow-dot"></div>
+            <span>The Studio</span>
+          </div>
+          <div class="about-info-block reveal-item" data-delay="100">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+              <circle cx="12" cy="12" r="9.25"/>
+              <path d="M12 2.75c2.6 2.3 4 5.8 4 9.25s-1.4 6.95-4 9.25c-2.6-2.3-4-5.8-4-9.25s1.4-6.95 4-9.25zM2.75 12h18.5"/>
+            </svg>
+            <div class="about-info-text">A distributed lab engineering across virtual and physical domains.</div>
+          </div>
+        </div>
+        
+        <div class="about-right">
+          <h2 class="about-statement word-reveal" data-delay="0" data-stagger="35">
+            I partner with visionary labs to build <span class="muted-words">spatial interfaces, cybernetic systems, and the interactions that connect them.</span>
+          </h2>
+          
+          <div class="about-footer reveal-item" data-delay="200">
+            <div class="about-socials-col">
+              <span class="about-socials-label">Find me online</span>
+              <div class="about-socials-row">
+                <a href="https://t.me/memnikf" target="_blank" class="social-chip variant-accent" aria-label="Telegram" style="font-weight: bold; font-size: 0.75rem; color: #000;">
+                  TG
+                </a>
+                <a href="#" class="social-chip variant-surface" aria-label="Behance">
+                  <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                </a>
+                <a href="#" class="social-chip variant-surface" aria-label="Dribbble">
+                  <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg>
+                </a>
+              </div>
+            </div>
+            
+            <a href="#about" class="pill-button variant-outline has-arrow" aria-label="About Us">
+              <span class="pill-button-inner">
+                <span>About Us</span>
+                <span class="pill-button-badge">
+                  <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="arrow-right">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CreateBand Section -->
+    <section class="create-band-section">
+      <ul class="shell create-band-list">
+        <li class="create-band-item reveal-item" style="transition-delay: 0ms">
+          <div class="create-tile variant-light">We</div>
+        </li>
+        <li class="create-band-item reveal-item" style="transition-delay: 120ms">
+          <div class="create-tile variant-accent">Synthesize</div>
+        </li>
+        <li class="create-band-item reveal-item" style="transition-delay: 240ms">
+          <div class="create-tile variant-dark">
+            <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </div>
+        </li>
+        <li class="create-band-item reveal-item" style="transition-delay: 360ms">
+          <div class="create-tile variant-ghost">Future</div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Portfolio Section -->
+    <section class="portfolio-section" id="works">
+      <div class="shell portfolio-inner">
+        <div class="eyebrow tone-dark border-eyebrow reveal-item" style="border:1px solid var(--line); border-radius:9999px; padding:.375rem 1rem; background: rgba(255,255,255,0.02)">
+          <div class="eyebrow-dot"></div>
+          <span>Research Lab</span>
+        </div>
+        
+        <h2 class="portfolio-title line-reveal" data-delay="120" data-stagger="120">
+          <span class="line-container"><span>Selected Projects</span></span>
+        </h2>
+
+        <ul class="portfolio-grid">
+          <!-- Card 1 -->
+          <li class="reveal-item" style="transition-delay: 0ms">
+            <a href="#" class="portfolio-card-link" onclick="event.preventDefault(); openRequestModal();">
+              <article class="portfolio-card">
+                <div class="portfolio-meta">
+                  <span>System — 2025</span>
+                  <div class="portfolio-badge">
+                    <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="arrow-up-right">
+                      <path d="M7 17L17 7M8 7h9v9" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="portfolio-watermark" aria-hidden="true">
+                  <div class="portfolio-watermark-inner">
+                    <svg viewBox="0 0 48 48" width="1em" height="1em" fill="currentColor"><path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z" /></svg>
+                    <span class="portfolio-watermark-reg">®</span>
+                  </div>
+                </div>
+                <div class="portfolio-bottom">
+                  <h3 class="portfolio-name">Aether OS</h3>
+                  <p class="portfolio-desc">A lightweight, decentralized operating system for mixed reality environments.</p>
+                  <div class="portfolio-tags">
+                    <span class="tag-chip">OS Dev</span>
+                    <span class="tag-chip">Kernel</span>
+                    <span class="tag-chip">UX</span>
+                  </div>
+                </div>
+              </article>
+            </a>
+          </li>
+
+          <!-- Card 2 -->
+          <li class="reveal-item" style="transition-delay: 90ms">
+            <a href="#" class="portfolio-card-link" onclick="event.preventDefault(); openRequestModal();">
+              <article class="portfolio-card">
+                <div class="portfolio-meta">
+                  <span>Spatial — 2024</span>
+                  <div class="portfolio-badge">
+                    <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="arrow-up-right">
+                      <path d="M7 17L17 7M8 7h9v9" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="portfolio-watermark" aria-hidden="true">
+                  <div class="portfolio-watermark-inner">
+                    <svg viewBox="0 0 48 48" width="1em" height="1em" fill="currentColor"><path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z" /></svg>
+                    <span class="portfolio-watermark-reg">®</span>
+                  </div>
+                </div>
+                <div class="portfolio-bottom">
+                  <h3 class="portfolio-name">Horizon MR</h3>
+                  <p class="portfolio-desc">A prototype spatial computer interface reimagining daily workflows.</p>
+                  <div class="portfolio-tags">
+                    <span class="tag-chip">MR Interface</span>
+                    <span class="tag-chip">Spatial UI</span>
+                  </div>
+                </div>
+              </article>
+            </a>
+          </li>
+
+          <!-- Card 3 -->
+          <li class="reveal-item" style="transition-delay: 180ms">
+            <a href="#" class="portfolio-card-link" onclick="event.preventDefault(); openRequestModal();">
+              <article class="portfolio-card">
+                <div class="portfolio-meta">
+                  <span>Typography — 2023</span>
+                  <div class="portfolio-badge">
+                    <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="arrow-up-right">
+                      <path d="M7 17L17 7M8 7h9v9" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="portfolio-watermark" aria-hidden="true">
+                  <div class="portfolio-watermark-inner">
+                    <svg viewBox="0 0 48 48" width="1em" height="1em" fill="currentColor"><path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z" /></svg>
+                    <span class="portfolio-watermark-reg">®</span>
+                  </div>
+                </div>
+                <div class="portfolio-bottom">
+                  <h3 class="portfolio-name">Cybertype</h3>
+                  <p class="portfolio-desc">A brutalist digital typeface designed for variable layouts and high-speed screens.</p>
+                  <div class="portfolio-tags">
+                    <span class="tag-chip">Typography</span>
+                    <span class="tag-chip">Design</span>
+                  </div>
+                </div>
+              </article>
+            </a>
+          </li>
+
+          <!-- Card 4 -->
+          <li class="reveal-item" style="transition-delay: 270ms">
+            <a href="#" class="portfolio-card-link" onclick="event.preventDefault(); openRequestModal();">
+              <article class="portfolio-card">
+                <div class="portfolio-meta">
+                  <span>Neural — 2023</span>
+                  <div class="portfolio-badge">
+                    <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="arrow-up-right">
+                      <path d="M7 17L17 7M8 7h9v9" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="portfolio-watermark" aria-hidden="true">
+                  <div class="portfolio-watermark-inner">
+                    <svg viewBox="0 0 48 48" width="1em" height="1em" fill="currentColor"><path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z" /></svg>
+                    <span class="portfolio-watermark-reg">®</span>
+                  </div>
+                </div>
+                <div class="portfolio-bottom">
+                  <h3 class="portfolio-name">Biosync</h3>
+                  <p class="portfolio-desc">A brain-computer interface mapping neural signals to tactile feedback in real-time.</p>
+                  <div class="portfolio-tags">
+                    <span class="tag-chip">BCI</span>
+                    <span class="tag-chip">Hardware</span>
+                    <span class="tag-chip">Firmware</span>
+                  </div>
+                </div>
+              </article>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services-section" id="services">
+      <div class="shell services-inner">
+        <div class="eyebrow tone-dark">
+          <div class="eyebrow-dot"></div>
+          <span>Capabilities</span>
+        </div>
+        
+        <h2 class="services-title line-reveal" data-delay="120" data-stagger="120">
+          <span class="line-container"><span>Lab Expertise</span></span>
+        </h2>
+
+        <ul class="services-list">
+          <!-- Row 1 -->
+          <li class="services-item reveal-item" style="transition-delay: 0ms">
+            <a href="#" class="service-row-link" onclick="event.preventDefault(); openRequestModal();">
+              <div class="service-row">
+                <span class="service-index">01</span>
+                <h3 class="service-name">Interface Design</h3>
+                <p class="service-desc">Tactile, dynamic screens that react instantly.</p>
+                <div class="service-badge">
+                  <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M8 7h9v9"/></svg>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <!-- Row 2 -->
+          <li class="services-item reveal-item" style="transition-delay: 80ms">
+            <a href="#" class="service-row-link" onclick="event.preventDefault(); openRequestModal();">
+              <div class="service-row">
+                <span class="service-index">02</span>
+                <h3 class="service-name">Spatial Computing</h3>
+                <p class="service-desc">Fusing digital graphics with physical dimensions.</p>
+                <div class="service-badge">
+                  <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M8 7h9v9"/></svg>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <!-- Row 3 -->
+          <li class="services-item reveal-item" style="transition-delay: 160ms">
+            <a href="#" class="service-row-link" onclick="event.preventDefault(); openRequestModal();">
+              <div class="service-row">
+                <span class="service-index">03</span>
+                <h3 class="service-name">Bio-electronics</h3>
+                <p class="service-desc">Prototyping next-generation sensor-driven hardware.</p>
+                <div class="service-badge">
+                  <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M8 7h9v9"/></svg>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <!-- Row 4 -->
+          <li class="services-item reveal-item" style="transition-delay: 240ms">
+            <a href="#" class="service-row-link" onclick="event.preventDefault(); openRequestModal();">
+              <div class="service-row">
+                <span class="service-index">04</span>
+                <h3 class="service-name">Cybernetic Systems</h3>
+                <p class="service-desc">Developing robust firmware and network systems.</p>
+                <div class="service-badge">
+                  <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M8 7h9v9"/></svg>
+                </div>
+              </div>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+      <div class="shell stats-inner">
+        <div class="stats-panel reveal-item">
+          <div class="eyebrow tone-light">
+            <div class="eyebrow-dot"></div>
+            <span>Memnik by the numbers</span>
+          </div>
+          
+          <h2 class="stats-title line-reveal" data-delay="120" data-stagger="120">
+            <span class="line-container"><span>Proved by telemetry,</span></span>
+            <span class="line-container"><span>verified in telemetry.</span></span>
+          </h2>
+
+          <ul class="stats-grid">
+            <li class="stats-item reveal-item" style="transition-delay: 0ms">
+              <span class="stat-number" data-target="85" data-suffix="+">0</span>
+              <span class="stat-label">Environments deployed</span>
+            </li>
+            <li class="stats-item reveal-item" style="transition-delay: 90ms">
+              <span class="stat-number" data-target="99" data-suffix="%">0</span>
+              <span class="stat-label">Synthesis accuracy</span>
+            </li>
+            <li class="stats-item reveal-item" style="transition-delay: 180ms">
+              <span class="stat-number" data-target="8" data-suffix="">0</span>
+              <span class="stat-label">Years of research</span>
+            </li>
+            <li class="stats-item reveal-item" style="transition-delay: 270ms">
+              <span class="stat-number" data-target="25" data-suffix="+">0</span>
+              <span class="stat-label">Hardware prototypes</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer id="footer">
+    <div class="shell footer-inner">
+      <div class="footer-cta-row">
+        <h2 class="footer-cta-title line-reveal" data-delay="0" data-stagger="100">
+          <span class="line-container"><span>Ready to construct?</span></span>
+          <span class="line-container"><span>Let's sync up.</span></span>
+        </h2>
+        
+        <button class="pill-button variant-light has-arrow" onclick="openRequestModal()" aria-label="Start a project">
+          <span class="pill-button-inner">
+            <span>Start a project</span>
+            <span class="pill-button-badge">
+              <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="arrow-up-right">
+                <path d="M7 17L17 7M8 7h9v9" />
+              </svg>
+            </span>
+          </span>
+        </button>
+      </div>
+
+      <div class="footer-grid">
+        <div class="footer-brand-col">
+          <div class="footer-brand-name">
+            <svg viewBox="0 0 48 48" width="1em" height="1em" fill="currentColor">
+              <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z" />
+            </svg>
+            <span>Memnik</span>
+          </div>
+          <p class="footer-brand-tagline">An independent lab synthesizing physical space with advanced human-machine interfaces.</p>
+        </div>
+
+        <div class="footer-links-col">
+          <span class="footer-col-title">Lab</span>
+          <ul class="footer-links-list">
+            <li><button onclick="scrollToSection('about')" class="animated-link"><span>About</span></button></li>
+            <li><button onclick="scrollToSection('footer')" class="animated-link"><span>Research</span></button></li>
+            <li><button onclick="scrollToSection('partners')" class="animated-link"><span>Partners</span></button></li>
+            <li><button onclick="openRequestModal()" class="animated-link"><span>Contact</span></button></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <span class="footer-col-title">Services</span>
+          <ul class="footer-links-list">
+            <li><button onclick="scrollToSection('services')" class="animated-link"><span>Interfaces</span></button></li>
+            <li><button onclick="scrollToSection('services')" class="animated-link"><span>Spatial UI</span></button></li>
+            <li><button onclick="scrollToSection('services')" class="animated-link"><span>Bio-electronics</span></button></li>
+            <li><button onclick="scrollToSection('services')" class="animated-link"><span>Cybernetics</span></button></li>
+          </ul>
+        </div>
+
+        <div class="footer-links-col">
+          <span class="footer-col-title">Social</span>
+          <ul class="footer-links-list">
+            <li><a href="https://t.me/memnikf" target="_blank" class="animated-link"><span>Telegram @memnikf</span></a></li>
+            <li><a href="#" class="animated-link"><span>X / Twitter</span></a></li>
+            <li><a href="#" class="animated-link"><span>Behance</span></a></li>
+            <li><a href="#" class="animated-link"><span>LinkedIn</span></a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-legal-bar">
+        <span>© 2025 Memnik Studio. All rights reserved.</span>
+        <div class="footer-legal-links">
+          <a href="#" class="animated-link legal-link" onclick="event.preventDefault()"><span>Privacy</span></a>
+          <a href="#" class="animated-link legal-link" onclick="event.preventDefault()"><span>Terms</span></a>
+        </div>
+      </div>
+      
+      <div class="footer-watermark">MEMNIK</div>
+    </div>
+  </footer>
+
+  <!-- Fullscreen Navigation Menu Overlay -->
+  <div class="nav-menu-overlay" id="nav-menu-overlay">
+    <div class="shell" style="height: 100%; display: flex; flex-direction: column;">
+      <div class="nav-menu-top">
+        <div class="nav-menu-brand">
+          <svg viewBox="0 0 48 48" width="1em" height="1em" fill="currentColor">
+            <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z" />
+          </svg>
+          <span>Memnik</span>
+        </div>
+        <button class="nav-menu-close" onclick="closeNavMenu()" aria-label="Close navigation menu">
+          <svg viewBox="0 0 24 24" width="0.875em" height="0.875em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l16 16M20 4 4 20"/></svg>
+          <span>Close</span>
+        </button>
+      </div>
+
+      <div class="nav-menu-content">
+        <ul class="nav-menu-list">
+          <li>
+            <button class="nav-menu-item-btn" onclick="navMenuRoute('home')" style="transition-delay: 80ms">
+              <span class="nav-menu-index">01</span>
+              <span class="nav-menu-label">Home</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-menu-item-btn" onclick="navMenuRoute('works')" style="transition-delay: 125ms">
+              <span class="nav-menu-index">02</span>
+              <span class="nav-menu-label">Work</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-menu-item-btn" onclick="navMenuRoute('services')" style="transition-delay: 170ms">
+              <span class="nav-menu-index">03</span>
+              <span class="nav-menu-label">Services</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-menu-item-btn" onclick="navMenuRoute('about')" style="transition-delay: 215ms">
+              <span class="nav-menu-index">04</span>
+              <span class="nav-menu-label">Studio</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-menu-item-btn" onclick="navMenuRoute('footer')" style="transition-delay: 260ms">
+              <span class="nav-menu-index">05</span>
+              <span class="nav-menu-label">Careers</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-menu-item-btn" onclick="navMenuRoute('contact')" style="transition-delay: 305ms">
+              <span class="nav-menu-index">06</span>
+              <span class="nav-menu-label">Contact</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-menu-bottom">
+        <span>Local time — <span class="live-time">9:41am</span></span>
+        <button class="nav-menu-cta-btn" onclick="closeNavMenu(); setTimeout(openRequestModal, 350);">Start a project →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Request Modal -->
+  <div class="modal-backdrop" id="modal-backdrop" onclick="closeRequestModal()">
+    <div class="modal-panel" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeRequestModal()" aria-label="Close modal">
+        <svg viewBox="0 0 24 24" width="0.875em" height="0.875em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l16 16M20 4 4 20"/></svg>
+      </button>
+      
+      <!-- Default Form State -->
+      <div id="modal-form-state">
+        <div class="modal-header">
+          <div class="modal-eyebrow">
+            <div class="modal-dot"></div>
+            <span>Sync Up</span>
+          </div>
+          <h2 class="modal-title">Tell us what you're constructing.</h2>
+        </div>
+        
+        <form class="modal-form" id="project-form" onsubmit="handleFormSubmit(event)">
+          <div class="form-group">
+            <label class="form-label" for="form-name">Name</label>
+            <input class="form-control" type="text" id="form-name" placeholder="Your name/organisation" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="form-email">Email / Telegram</label>
+            <input class="form-control" type="text" id="form-email" placeholder="you@company.com or @username" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="form-project">Concept</label>
+            <textarea class="form-control" id="form-project" rows="4" placeholder="A few words about your spatial, hardware, or software concept." required></textarea>
+          </div>
+          
+          <div class="modal-footer-row">
+            <span class="modal-note">Or ping me on Telegram: @memnikf</span>
+            <button class="pill-button variant-dark has-arrow" type="submit" id="submit-btn">
+              <span class="pill-button-inner">
+                <span id="submit-label">Send request</span>
+                <span class="pill-button-badge">
+                  <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="arrow-up-right">
+                    <path d="M7 17L17 7M8 7h9v9" />
+                  </svg>
+                </span>
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Success State -->
+      <div class="modal-success" id="modal-success-state">
+        <div class="modal-success-icon">
+          <svg viewBox="0 0 48 48" width="1em" height="1em" fill="currentColor">
+            <path d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z" />
+          </svg>
+        </div>
+        <h2 class="modal-success-title">Connection established</h2>
+        <p class="modal-success-desc">Thanks for reaching out — we'll get back to you within one business day. Feel free to follow up on Telegram: <a href="https://t.me/memnikf" target="_blank" style="color: var(--accent); text-decoration: underline;">@memnikf</a></p>
+        <button class="pill-button variant-dark no-arrow modal-success-btn" onclick="closeRequestModal()">
+          <span class="pill-button-inner">Close</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CDN Importmap -->
+  <script type="importmap">
+    { "imports": { "lenis": "https://unpkg.com/lenis@1.3.23/dist/lenis.mjs" } }
+  </script>
+
+  <!-- Core JavaScript -->
+  <script type="module">
+    import Lenis from 'lenis';
+
+    // Global Scroll Lock Model Gating
+    let scrollEnabled = true;
+    window.scrollTo(0, 0);
+
+    const lenis = new Lenis({ smoothWheel: true });
+    
+    // Connect stats scroll calculation inside Lenis update loop
+    lenis.on('scroll', () => {
+      if (scrollEnabled) {
+        updateStats();
+      }
+    });
+
+    function raf(t) {
+      if (scrollEnabled) {
+        lenis.raf(t);
+      }
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    function stopScroll() {
+      scrollEnabled = false;
+      lenis.stop();
+      document.documentElement.classList.add('scroll-locked');
+    }
+
+    function startScroll() {
+      scrollEnabled = true;
+      lenis.start();
+      document.documentElement.classList.remove('scroll-locked');
+    }
+
+    // scrollTo Section Helper (Verbatim logic fallback with clean transition)
+    window.scrollToSection = function(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const oldState = scrollEnabled;
+      scrollEnabled = false;
+      lenis.stop();
+      
+      setTimeout(() => {
+        const yOffset = window.pageYOffset || document.documentElement.scrollTop;
+        const top = el.getBoundingClientRect().top + yOffset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }, 50);
+
+      setTimeout(() => {
+        scrollEnabled = oldState;
+        if (scrollEnabled) {
+          lenis.start();
+        }
+      }, 1000); // Allow sufficient time for browser smooth scroll to settle
+    };
+
+    // Scale-UP above 1920px (Adaptive Grid Runtime JS)
+    function applyAdaptiveGrid(){
+      const FONT_BASE = 16, baseWidth = 1920, coef = 0.6666;
+      const w = window.innerWidth;
+      const widthReduction = ((baseWidth - w) / baseWidth) * 100;
+      const size = FONT_BASE - (FONT_BASE * (widthReduction * coef)) / 100;
+      if (size > FONT_BASE) {
+        document.documentElement.style.fontSize = size + 'px';
+      } else {
+        document.documentElement.style.removeProperty('font-size');
+      }
+    }
+    applyAdaptiveGrid();
+    window.addEventListener('resize', applyAdaptiveGrid);
+
+    // Live Clock Ticking (Every 1s)
+    function updateClock() {
+      const now = new Date();
+      
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // Handle 0 as 12
+      const timeStr = `${hours}:${minutes}${ampm}`;
+      
+      const days = now.getDate();
+      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const monthName = months[now.getMonth()];
+      const year = now.getFullYear();
+      const dateStr = `${days} ${monthName}, ${year}`;
+      
+      document.querySelectorAll('.live-time').forEach(el => el.textContent = timeStr);
+      document.querySelectorAll('.live-date').forEach(el => el.textContent = dateStr);
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // LiquidReveal Canvas Cursor Painting
+    class LiquidReveal {
+      constructor(container, beforeSrc, afterSrc) {
+        this.container = container;
+        this.canvas = container.querySelector('canvas');
+        this.ctx = this.canvas.getContext('2d');
+        
+        this.beforeImg = new Image();
+        this.beforeImg.crossOrigin = "anonymous";
+        this.beforeImg.src = beforeSrc;
+        
+        this.afterImg = new Image();
+        this.afterImg.crossOrigin = "anonymous";
+        this.afterImg.src = afterSrc;
+        
+        this.brushRadius = 143;
+        this.decay = 0.016;
+        this.points = [];
+        this.lastPoint = null;
+        this.idle = 0;
+        
+        this.coverCanvas = document.createElement('canvas');
+        this.coverCtx = this.coverCanvas.getContext('2d');
+        
+        this.brushCanvas = document.createElement('canvas');
+        this.brushCtx = this.brushCanvas.getContext('2d');
+        
+        this.imagesLoaded = 0;
+        const onImgLoad = () => {
+          this.imagesLoaded++;
+          if (this.imagesLoaded === 2) {
+            this.init();
+          }
+        };
+        this.beforeImg.onload = onImgLoad;
+        this.afterImg.onload = onImgLoad;
+        
+        if (this.beforeImg.complete) onImgLoad();
+        if (this.afterImg.complete) onImgLoad();
+      }
+      
+      init() {
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        window.addEventListener('pointermove', (e) => this.onPointerMove(e));
+        
+        this.tick();
+      }
+      
+      resize() {
+        this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rect = this.container.getBoundingClientRect();
+        this.width = rect.width;
+        this.height = rect.height;
+        
+        this.canvas.width = this.width * this.dpr;
+        this.canvas.height = this.height * this.dpr;
+        this.canvas.style.width = `${this.width}px`;
+        this.canvas.style.height = `${this.height}px`;
+        
+        this.coverCanvas.width = this.canvas.width;
+        this.coverCanvas.height = this.canvas.height;
+        
+        const imgRatio = this.afterImg.width / this.afterImg.height;
+        const canvasRatio = this.canvas.width / this.canvas.height;
+        let dw, dh, dx, dy;
+        
+        if (canvasRatio > imgRatio) {
+          dw = this.canvas.width;
+          dh = dw / imgRatio;
+          dx = 0;
+          dy = (this.canvas.height - dh) / 2;
+        } else {
+          dh = this.canvas.height;
+          dw = dh * imgRatio;
+          dx = (this.canvas.width - dw) / 2;
+          dy = 0;
+        }
+        this.coverCtx.drawImage(this.afterImg, dx, dy, dw, dh);
+        
+        this.radius = this.brushRadius * this.dpr;
+        this.diameter = Math.ceil(this.radius * 2);
+        this.brushCanvas.width = this.diameter;
+        this.brushCanvas.height = this.diameter;
+      }
+      
+      onPointerMove(e) {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const rect = this.canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) * this.dpr;
+        const y = (e.clientY - rect.top) * this.dpr;
+        
+        const maxDist = this.radius * 1.5;
+        if (x < -maxDist || y < -maxDist || x > this.canvas.width + maxDist || y > this.canvas.height + maxDist) {
+          this.lastPoint = null;
+          return;
+        }
+        
+        const current = { x, y };
+        if (this.lastPoint) {
+          const dx = current.x - this.lastPoint.x;
+          const dy = current.y - this.lastPoint.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const step = Math.max(this.radius * 0.3, 1);
+          const numPoints = Math.min(Math.ceil(dist / step), 60);
+          
+          for (let i = 1; i <= numPoints; i++) {
+            const t = i / numPoints;
+            this.points.push({
+              x: this.lastPoint.x + dx * t,
+              y: this.lastPoint.y + dy * t
+            });
+          }
+        } else {
+          this.points.push(current);
+        }
+        this.lastPoint = current;
+      }
+      
+      tick() {
+        requestAnimationFrame(() => this.tick());
+        
+        const hasPoints = this.points.length > 0;
+        if (hasPoints) {
+          this.idle = 0;
+        } else {
+          this.idle++;
+          if (this.idle > 120) return;
+        }
+        
+        const fade = hasPoints ? this.decay : Math.min(this.decay + this.idle * 0.004, 0.5);
+        this.ctx.globalCompositeOperation = 'destination-out';
+        this.ctx.fillStyle = `rgba(0, 0, 0, ${fade})`;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        if (hasPoints) {
+          this.ctx.globalCompositeOperation = 'source-over';
+          this.points.forEach(pt => this.stamp(pt.x, pt.y));
+          this.points = [];
+        }
+        
+        if (this.idle >= 120) {
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+      }
+      
+      stamp(x, y) {
+        const r = this.radius;
+        const d = this.diameter;
+        
+        this.brushCtx.clearRect(0, 0, d, d);
+        this.brushCtx.globalCompositeOperation = 'source-over';
+        
+        const grad = this.brushCtx.createRadialGradient(r, r, 0, r, r, r);
+        grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        grad.addColorStop(0.55, 'rgba(255, 255, 255, 0.82)');
+        grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        this.brushCtx.fillStyle = grad;
+        this.brushCtx.fillRect(0, 0, d, d);
+        
+        this.brushCtx.globalCompositeOperation = 'source-in';
+        this.brushCtx.drawImage(
+          this.coverCanvas,
+          x - r, y - r, d, d,
+          0, 0, d, d
+        );
+        
+        this.ctx.drawImage(this.brushCanvas, x - r, y - r);
+      }
+    }
+
+    // Initialize LiquidReveal with custom space/wave images
+    new LiquidReveal(
+      document.getElementById('liquid-reveal-container'),
+      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1920&auto=format&fit=crop'
+    );
+
+    // Staggered Entrances (Observer)
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.05,
+      rootMargin: '0px 0px -40px 0px'
+    });
+
+    // Word Reveal Setup (Stagger helper)
+    function setupWordReveals() {
+      document.querySelectorAll('.word-reveal').forEach(el => {
+        const text = el.innerHTML.trim();
+        const container = document.createElement('div');
+        container.innerHTML = text;
+        
+        const processNode = (node) => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            const words = node.textContent.split(/(\s+)/);
+            const fragment = document.createDocumentFragment();
+            words.forEach(word => {
+              if (word.trim() === '') {
+                fragment.appendChild(document.createTextNode(word));
+              } else {
+                const outer = document.createElement('span');
+                outer.className = 'word-outer';
+                const inner = document.createElement('span');
+                inner.className = 'word-inner';
+                inner.textContent = word;
+                outer.appendChild(inner);
+                fragment.appendChild(outer);
+              }
+            });
+            node.parentNode.replaceChild(fragment, node);
+          } else if (node.nodeType === Node.ELEMENT_NODE) {
+            Array.from(node.childNodes).forEach(processNode);
+          }
+        };
+        
+        Array.from(container.childNodes).forEach(processNode);
+        el.innerHTML = container.innerHTML;
+        
+        const inners = el.querySelectorAll('.word-inner');
+        const baseDelay = parseInt(el.getAttribute('data-delay') || 0);
+        const stagger = parseInt(el.getAttribute('data-stagger') || 35);
+        inners.forEach((inner, idx) => {
+          inner.style.transitionDelay = `${baseDelay + (idx * stagger)}ms`;
+        });
+      });
+    }
+
+    setupWordReveals();
+
+    // Start Page Loader Count up
+    stopScroll();
+    const loader = document.getElementById('page-loader');
+    const fillEl = document.getElementById('loader-fill');
+    const percentageEl = document.getElementById('loader-percentage');
+    const startTime = performance.now();
+    const duration = 1300; // 1300ms
+
+    function animateLoader(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // easeInOutCubic
+      const eased = progress < 0.5 
+        ? 4 * progress * progress * progress 
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      
+      const currentPct = Math.round(eased * 100);
+      
+      fillEl.style.width = `${currentPct}%`;
+      percentageEl.textContent = String(currentPct).padStart(3, '0');
+      
+      if (progress < 1) {
+        requestAnimationFrame(animateLoader);
+      } else {
+        // Complete loader, start exit transition
+        setTimeout(() => {
+          loader.classList.add('exit');
+          setTimeout(() => {
+            document.body.classList.add('ready');
+            // Connect Observer targets
+            document.querySelectorAll('.line-reveal, .word-reveal, .reveal-item, .services-item').forEach(el => {
+              revealObserver.observe(el);
+            });
+            startScroll();
+            loader.remove();
+          }, 700); // Slide up transition time
+        }, 150);
+      }
+    }
+    requestAnimationFrame(animateLoader);
+
+    // Hero Carousel Widget Slider
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.carousel-slide');
+    const dots = document.querySelectorAll('.carousel-dot');
+
+    window.advanceCarousel = function(step) {
+      const prevSlide = currentSlide;
+      currentSlide = (currentSlide + step + slides.length) % slides.length;
+      
+      slides.forEach((slide, idx) => {
+        slide.classList.remove('active', 'prev', 'next');
+        if (idx === currentSlide) {
+          slide.classList.add('active');
+        } else if (idx === (currentSlide - 1 + slides.length) % slides.length) {
+          slide.classList.add('prev');
+        } else {
+          slide.classList.add('next');
+        }
+      });
+
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === currentSlide);
+      });
+    };
+
+    // Scroll progress stats tracker logic
+    function updateStats() {
+      const stats = document.querySelectorAll('.stat-number');
+      stats.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const target = parseInt(el.getAttribute('data-target') || 0);
+        const suffix = el.getAttribute('data-suffix') || '';
+        const vh = window.innerHeight;
+        
+        // Start scroll progression: top is at bottom of screen (rect.top = vh)
+        // End scroll progression: center is at center of screen (rect.top + rect.height/2 = vh/2)
+        const startY = vh;
+        const endY = vh / 2 - rect.height / 2;
+        
+        let progress = (rect.top - startY) / (endY - startY);
+        progress = Math.max(0, Math.min(1, progress));
+        
+        const value = Math.round(progress * target);
+        el.textContent = `${value}${suffix}`;
+      });
+    }
+
+    // Fullscreen Navigation Menu Handles
+    const navMenu = document.getElementById('nav-menu-overlay');
+    window.openNavMenu = function() {
+      stopScroll();
+      navMenu.classList.add('open');
+      document.addEventListener('keydown', onNavMenuEsc);
+    };
+
+    window.closeNavMenu = function() {
+      navMenu.classList.remove('open');
+      startScroll();
+      document.removeEventListener('keydown', onNavMenuEsc);
+    };
+
+    function onNavMenuEsc(e) {
+      if (e.key === 'Escape') closeNavMenu();
+    }
+
+    window.navMenuRoute = function(dest) {
+      closeNavMenu();
+      setTimeout(() => {
+        if (dest === 'contact') {
+          openRequestModal();
+        } else {
+          scrollToSection(dest);
+        }
+      }, 350);
+    };
+
+    // Contact Form & Request Modal Handles
+    const modal = document.getElementById('modal-backdrop');
+    const formState = document.getElementById('modal-form-state');
+    const successState = document.getElementById('modal-success-state');
+    const projectForm = document.getElementById('project-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const submitLabel = document.getElementById('submit-label');
+
+    window.openRequestModal = function() {
+      stopScroll();
+      modal.classList.add('open');
+      document.addEventListener('keydown', onModalEsc);
+    };
+
+    window.closeRequestModal = function() {
+      modal.classList.add('exit-anim');
+      modal.classList.remove('open');
+      startScroll();
+      document.removeEventListener('keydown', onModalEsc);
+      
+      // Reset state after animation ends
+      setTimeout(() => {
+        modal.classList.remove('exit-anim');
+        formState.style.display = 'block';
+        successState.style.display = 'none';
+        projectForm.reset();
+        submitBtn.disabled = false;
+        submitLabel.textContent = 'Send request';
+      }, 350);
+    };
+
+    function onModalEsc(e) {
+      if (e.key === 'Escape') closeRequestModal();
+    }
+
+    window.handleFormSubmit = function(e) {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      submitLabel.textContent = 'Sending…';
+      
+      setTimeout(() => {
+        formState.style.display = 'none';
+        successState.style.display = 'flex';
+      }, 800);
+    };
+  </script>
+</body>
+</html>
